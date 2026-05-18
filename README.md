@@ -1,19 +1,15 @@
 # do-orm
 
-Minimal type-safe ORM for Cloudflare Durable Object SQLite. ~250 lines. Zero dependencies.
+Minimal type-safe ORM for Cloudflare Durable Object SQLite.
 
-Built as a lightweight replacement for [drizzle-orm](https://orm.drizzle.team/) in projects where the database is always an embedded SQLite inside a Durable Object. No driver abstraction, no query planner, no schema introspection. Just typed CRUD over `ctx.storage.sql.exec()`.
+Built as a lightweight replacement for [drizzle-orm](https://orm.drizzle.team/) in projects where the database is always an embedded SQLite inside a Durable Object.
 
 ## Why
 
-Drizzle is a great ORM for general-purpose apps. But Durable Objects have a specific context:
+Durable Objects have a specific context:
 
-- The database is always SQLite, always local, always embedded
-- There's no connection pooling, no network, no driver switching
-- Most queries are simple CRUD by primary key
-- The full drizzle-orm package is ~6MB for patterns that need ~250 lines
-
-This library covers the query patterns actually used in DO-based apps: select, insert, update, delete, count, ordering, filtering, transactions. Nothing else.
+- Local SQLite database
+- No connection pooling, no network, no driver switching
 
 ## Install
 
@@ -39,6 +35,7 @@ const posts = table('posts', {
   id: column.integer().primaryKey().autoIncrement(),
   title: column.text().notNull(),
   authorId: column.integer().notNull().references(ref(users, 'id')),
+  status: column.text().notNull().default('draft'),
   createdAt: column.text().notNull(),
 });
 ```
@@ -212,9 +209,7 @@ Column modifiers: `.notNull()`, `.primaryKey()`, `.autoIncrement()`, `.unique()`
 
 ## Migrations
 
-Built-in migration runner. Migrations are a record keyed by `mNNNN` (m0000, m0001, ...). Call `migrate()` in your DO constructor. Only unapplied migrations run. All new migrations execute in a single transaction.
-
-**Migrations must be hand-written SQL strings.** Each migration is an immutable snapshot of the change it represents. Never generate migration SQL from the live schema definition, because schema definitions change over time while past migrations must not.
+Migrations are a record keyed by `mNNNN` (m0000, m0001, ...) mapping to hand written SQL. Call `migrate()` in your DO constructor. Only unapplied migrations run. All new migrations execute in a single transaction.
 
 ```typescript
 import { migrate } from 'do-orm';
