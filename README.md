@@ -57,7 +57,7 @@ AutoIncrement PKs, nullable columns, and columns with defaults are optional in i
 ### Query
 
 ```typescript
-import { createDb, eq, ne, lt, lte, gt, gte, and, asc, desc } from 'do-orm';
+import { createDb, eq, ne, lt, lte, gt, gte, and, isNull, isNotNull, asc, desc } from 'do-orm';
 
 // In your Durable Object constructor:
 const db = createDb(ctx.storage);
@@ -95,6 +95,10 @@ db.all(posts, { where: gt('id', 100) });                                    // g
 db.all(posts, { where: gte('createdAt', '2026-01-01') });                   // greater than or equal
 db.all(posts, { where: lt('id', cursor) });                                  // less than
 db.all(users, { where: ne('role', 'banned') });                              // not equal
+
+// Null checks
+db.all(users, { where: isNull('email') });                                   // email IS NULL
+db.all(users, { where: isNotNull('email') });                                // email IS NOT NULL
 
 // Compound conditions
 db.all(posts, { where: and(eq('authorId', 1), eq('status', 'published')) });
@@ -191,6 +195,8 @@ Column modifiers: `.notNull()`, `.primaryKey()`, `.autoIncrement()`, `.unique()`
 | `lte(column, value)` | Less than or equal (`<=`) |
 | `gt(column, value)` | Greater than (`>`) |
 | `gte(column, value)` | Greater than or equal (`>=`) |
+| `isNull(column)` | Is null (`IS NULL`) |
+| `isNotNull(column)` | Is not null (`IS NOT NULL`) |
 | `and(...conditions)` | AND multiple conditions |
 
 ### Ordering

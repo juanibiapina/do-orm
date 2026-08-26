@@ -20,6 +20,18 @@ class CompareCondition implements Condition {
   }
 }
 
+class NullCondition implements Condition {
+  constructor(
+    private column: string,
+    private negated: boolean,
+  ) {}
+
+  toSql() {
+    const op = this.negated ? "IS NOT NULL" : "IS NULL";
+    return { sql: `"${this.column}" ${op}`, params: [] };
+  }
+}
+
 class AndCondition implements Condition {
   constructor(private conditions: Condition[]) {}
 
@@ -57,6 +69,14 @@ export function gt(column: string, value: unknown): Condition {
 
 export function gte(column: string, value: unknown): Condition {
   return new CompareCondition(column, ">=", value);
+}
+
+export function isNull(column: string): Condition {
+  return new NullCondition(column, false);
+}
+
+export function isNotNull(column: string): Condition {
+  return new NullCondition(column, true);
 }
 
 export function and(...conditions: Condition[]): Condition {

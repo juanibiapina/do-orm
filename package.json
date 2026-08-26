@@ -1,6 +1,6 @@
 {
   "name": "do-orm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Minimal type-safe ORM for Cloudflare Durable Object SQLite",
   "type": "module",
   "main": "src/index.ts",

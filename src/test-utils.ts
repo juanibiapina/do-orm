@@ -276,6 +276,17 @@ function matchesWhere(
 
   const whereSql = whereMatch[1];
 
+  // Null checks: "col" IS NULL / IS NOT NULL. These consume no binding, so
+  // they are handled separately from the bound comparison operators below and
+  // never advance the param index.
+  const nullMatches = [...whereSql.matchAll(/"(\w+)" IS (NOT )?NULL/g)];
+  for (const match of nullMatches) {
+    const col = match[1];
+    const negated = Boolean(match[2]);
+    const isRowNull = row[col] === null || row[col] === undefined;
+    if (negated ? isRowNull : !isRowNull) return false;
+  }
+
   // Parse conditions: "col" op ? patterns (=, !=, <, <=, >, >=)
   const condMatches = [...whereSql.matchAll(/"(\w+)" (=|!=|<=|>=|<|>) \?/g)];
   let paramIdx = bindingOffset;

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { table, column, createDb, eq, ne, lt, lte, gt, gte, and, asc, desc } from "./index.js";
+import { table, column, createDb, eq, ne, lt, lte, gt, gte, and, isNull, isNotNull, asc, desc } from "./index.js";
 import { createMockStorage } from "./test-utils.js";
 import type { InferRow, InferInsert } from "./index.js";
 
@@ -515,6 +515,44 @@ describe("Database", () => {
         'WHERE ("authorId" = ?) AND ("status" = ?)',
       );
       expect(storage.statements[0].params).toEqual([1, "published"]);
+    });
+  });
+
+  describe("isNull() / isNotNull() conditions", () => {
+    it("isNull matches rows with a null column", () => {
+      const db = createDb(storage);
+      const result = db.all(users, { where: isNull("email") });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Bob");
+
+      expect(storage.statements[0].sql).toContain('WHERE "email" IS NULL');
+      expect(storage.statements[0].params).toEqual([]);
+    });
+
+    it("isNotNull matches rows with a non-null column", () => {
+      const db = createDb(storage);
+      const result = db.all(users, { where: isNotNull("email") });
+
+      expect(result.map((r) => r.name)).toEqual(["Alice", "Charlie"]);
+
+      expect(storage.statements[0].sql).toContain('WHERE "email" IS NOT NULL');
+      expect(storage.statements[0].params).toEqual([]);
+    });
+
+    it("keeps param alignment when combined with a bound condition", () => {
+      const db = createDb(storage);
+      const result = db.all(users, {
+        where: and(eq("role", "user"), isNull("email")),
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe("Bob");
+
+      expect(storage.statements[0].sql).toContain(
+        'WHERE ("role" = ?) AND ("email" IS NULL)',
+      );
+      expect(storage.statements[0].params).toEqual(["user"]);
     });
   });
 
